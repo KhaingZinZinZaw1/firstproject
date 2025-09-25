@@ -73,7 +73,7 @@ class UserService implements UserServiceInterface
     public function storeUser(array $data)
     {
         // Add currently logged-in user ID to created_by
-        $data['created_by'] = Auth::id();
+        $data['created_by'] = Auth::id() ?? 1;
 
         // Hash password
         $data['password'] = bcrypt($data['password']);
