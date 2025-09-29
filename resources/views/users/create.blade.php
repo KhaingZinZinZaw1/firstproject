@@ -113,7 +113,6 @@
                     class="form-select @error('role') is-invalid @enderror" 
                     required
                 >
-                    <option value="0" {{ old('role') == 0 ? 'selected' : '' }}>Default</option>
                     <option value="1" {{ old('role') == 1 ? 'selected' : '' }}>Admin</option>
                     <option value="2" {{ old('role') == 2 ? 'selected' : '' }}>Member</option>
                 </select>

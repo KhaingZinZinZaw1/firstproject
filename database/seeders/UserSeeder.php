@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
             'email' => 'admin@example.com',
             'password' => Hash::make('123aaa'), 
             'role' => 1,
-            'created_by' => Auth::id() ?? 1,
+            'created_by' => 99999,
         ]);
     }
 }

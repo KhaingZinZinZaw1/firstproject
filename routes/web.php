@@ -9,14 +9,19 @@ use Illuminate\Support\Facades\Route;
 // });
 
 // user login/logout and crud operation
+
+Route::group(['prefix' => 'user', 'as' => 'users.', 'middleware' => 'auth'], function () {
+    Route::controller(UserController::class)->group(function () {
+        Route::get('/list', 'userList')->name('list');
+        Route::get('/{user}/edit', 'edit')->name('edit');
+        Route::put('/{user}', 'update')->name('update');
+        Route::delete('/{user}', 'destroy')->name('destroy');
+    });
+});
+
 Route::controller(UserController::class)->group(function () {
-    Route::get('/index', 'index')->name('users.index')->middleware(['auth']);
     Route::get('/create', 'create')->name('users.create');
     Route::post('users', 'store')->name('users.store');
-    Route::get('users/{user}/edit', 'edit')->name('users.edit')->middleware(['auth']);
-    Route::put('users/{user}', 'update')->name('users.update')->middleware(['auth']);
-    Route::delete('users/{user}', 'destroy')->name('users.destroy')->middleware(['auth']);
-
     Route::get('/', 'login')->name('login');
     Route::post('/', 'checklogin')->name('check.login');
     Route::post('/logout', 'logout')->name('logout');
@@ -24,5 +29,3 @@ Route::controller(UserController::class)->group(function () {
     Route::get('/forgotpsw', 'passwordreset')->name('password.request');
     Route::post('/emailreset', 'emailreset')->name('password.email');
 });
-
-

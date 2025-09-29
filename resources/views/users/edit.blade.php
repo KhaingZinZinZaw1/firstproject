@@ -60,7 +60,6 @@
                         <div class="mb-3">
                             <label for="role" class="form-label">Role</label>
                             <select name="role" id="role" class="form-select" required>
-                                <option value="0" {{ $user->role == 0 ? 'selected' : '' }}>Default</option>
                                 <option value="1" {{ $user->role == 1 ? 'selected' : '' }}>Admin</option>
                                 <option value="2" {{ $user->role == 2 ? 'selected' : '' }}>Member</option>
                             </select>
@@ -70,7 +69,7 @@
                     </form>
 
                     <div class="text-center mt-3">
-                        <a href="{{ route('users.index') }}" class="text-decoration-none">Back to Users List</a>
+                        <a href="{{ route('users.list') }}" class="text-decoration-none">Back to Users List</a>
                     </div>
                 </div>
             </div>

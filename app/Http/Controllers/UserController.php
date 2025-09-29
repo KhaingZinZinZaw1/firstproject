@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -46,25 +47,31 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        // $data = $request->only(['name', 'email', 'password', 'img', 'role']);
-
-        // $this->userService->storeUser($data);
-
-        // return redirect()->route('users.index');
         // Validation rules to check
         $validated = $request->validate([
         'name'     => 'required|string|max:100',
         'email'    => 'required|string|email|max:100|unique:users,email',
         'password' => 'required|string|min:6|max:255|confirmed',
-        'img'      => 'nullable|string|max:255',
-        'role'     => 'required|integer|in:0,1,2', // 0=default, 1=admin, 2=member
+        'img'      => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
+        'role'     => 'required|integer|in:1,2', //1=admin, 2=member
         ]);
+        
+        // Handle image upload if file exists
+        if ($request->hasFile('img')) {
+            $file = $request->file('img');
+            $filename = Str::uuid().'.'.$file->getClientOriginalExtension(); // unique filename
+            // dd($filename);
+            // Save in storage/app/images
+            $path = $file->storeAs('images', $filename); // "local" disk by default
+            dd($path);
+
+            $validated['img'] = $path; // save path to validated data
+        }
         
         //Pass validated data to service
         $this->userService->storeUser($validated);
 
-        return redirect()->route('users.index')
-            ->with('status', 'User created successfully!');
+        return redirect()->route('users.list')->with('status', 'User created successfully!');
     }
 
     /**
@@ -93,7 +100,7 @@ class UserController extends Controller
             'email'    => 'required|string|email|max:100|unique:users,email,' . $id,
             'password' => 'nullable|string|min:6|max:255|confirmed',
             'img'      => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
-            'role'     => 'required|integer|in:0,1,2',
+            'role'     => 'required|integer|in:1,2',
         ]);
         
         // Fetch user via service
@@ -106,7 +113,7 @@ class UserController extends Controller
 
         // Update user via service
         $this->userService->updateUser($user, $validated);
-        return redirect()->route('users.index')->with('status', 'User updated successfully!');
+        return redirect()->route('users.list')->with('status', 'User updated successfully!');
     }
 
     /**
@@ -121,7 +128,7 @@ class UserController extends Controller
         $user = $this->userService->getUserById($id);
         // Delete user via service
         $this->userService->deleteUser($user);
-        return redirect()->route('users.index');
+        return redirect()->route('users.list');
     }
 
     /**
@@ -129,10 +136,10 @@ class UserController extends Controller
      *
      * @return view
      */
-    public function index()
+    public function userList()
     {
         $users = $this->userService->listUsers();
-        return view('users.index', compact('users'));
+        return view('users.list', compact('users'));
     }
 
     /**
@@ -145,19 +152,13 @@ class UserController extends Controller
         $credentials = $request->only('email', 'password');
         $user = $this->userService->checkLogin($credentials);
 
-        // if ($user) {
-        //     // Login via Auth facade
-        //     Auth::login($user);
-        //     return redirect()->route('users.index');
-        // }
-
         if ($user) {
             // Login via Auth facade
             Auth::login($user);
 
             // Check if user is admin
             if ($user->role == 1) {
-                return redirect()->route('users.index');
+                return redirect()->route('users.list');
             } else {
                     return redirect()->back()->withErrors([
                     'login_error' => 'Permission denied!']);
