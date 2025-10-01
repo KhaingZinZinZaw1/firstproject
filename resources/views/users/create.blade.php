@@ -1,19 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create User</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light d-flex justify-content-center align-items-center min-vh-100">
+@extends('users.layouts.app')
 
+@section('title', 'Create User') <!-- Page title -->
+
+@section('content')
+<div class="d-flex justify-content-center align-items-center min-vh-100">
     <div class="card shadow-lg p-4" style="width: 400px;">
         <h3 class="text-center mb-4">Create User</h3>
 
-        <!-- Show all validation errors -->
-        <!-- @if($errors->any())
+        <!-- Validation errors -->
+        @if($errors->any())
             <div class="alert alert-danger py-2">
                 <ul class="mb-0 ps-3">
                     @foreach($errors->all() as $error)
@@ -21,7 +16,7 @@
                     @endforeach
                 </ul>
             </div>
-        @endif -->
+        @endif
 
         <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
@@ -125,8 +120,5 @@
             <button type="submit" class="btn btn-primary w-100">Save User</button>
         </form>
     </div>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+@endsection

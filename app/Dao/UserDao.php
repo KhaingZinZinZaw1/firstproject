@@ -28,7 +28,6 @@ class UserDao implements UserDaoInterface
     {
         return User::findOrFail($id);
     }
-
     /**
      * findByEmail function
      *
@@ -43,15 +42,17 @@ class UserDao implements UserDaoInterface
     /**
      * updateUser function
      *
-     * @param User $user
+     * @param int $id
      * @param array $data
      * @return bool
      */
-    public function updateUser(User $user, array $data)
+    public function updateUser(int $id, array $data)
     {
-        return $user->update($data);
+        if (!empty($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
+        }
+        return User::where('id', $id)->update($data);
     }
-
     /**
      * getAllUsers function
      *
@@ -63,25 +64,13 @@ class UserDao implements UserDaoInterface
     }
 
     /**
-     * updatePassword function
-     *
-     * @param User $user
-     * @param string $password
-     * @return bool
-     */
-    public function updatePassword(User $user, string $password)
-    {
-        return $user->update(['password' => $password]);
-    }
-
-    /**
      * deleteUser function
      *
-     * @param User $user
+     * @param int $id
      * @return bool
      */
-    public function deleteUser(User $user)
+    public function deleteUser(int $id)
     {
-        return $user->delete();
+        return User::where('id', $id)->delete(); // returns number of affected rows
     }
 }

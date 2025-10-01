@@ -8,10 +8,10 @@ interface UserDaoInterface
     public function createUser(array $data);
     public function findByEmail(string $email);
     public function getAllUsers();
-    public function updatePassword(User $user, string $password);
+    // public function updatePassword(User $user, string $password);
     public function findUserById(int $id);
-    public function updateUser(User $user, array $data);
-    public function deleteUser(User $user);
+    public function updateUser(int $id, array $data);
+    public function deleteUser(int $id);
 }
 
 

@@ -60,11 +60,7 @@ class UserController extends Controller
         if ($request->hasFile('img')) {
             $file = $request->file('img');
             $filename = Str::uuid().'.'.$file->getClientOriginalExtension(); // unique filename
-            // dd($filename);
-            // Save in storage/app/images
-            $path = $file->storeAs('images', $filename); // "local" disk by default
-            dd($path);
-
+            $path = $file->storeAs('images', $filename);
             $validated['img'] = $path; // save path to validated data
         }
         
@@ -102,18 +98,35 @@ class UserController extends Controller
             'img'      => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048',
             'role'     => 'required|integer|in:1,2',
         ]);
-        
-        // Fetch user via service
-        $user = $this->userService->getUserById($id);
-
-        // If password is empty, remove it so it won't overwrite the current password
-        if (empty($validated['password'])) {
-            unset($validated['password']);
+        // Handle password
+        if (!empty($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']); // Remove if empty
         }
 
-        // Update user via service
-        $this->userService->updateUser($user, $validated);
-        return redirect()->route('users.list')->with('status', 'User updated successfully!');
+        // Handle image upload
+        if ($request->hasFile('img')) {
+            $file = $request->file('img');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('images', $filename);
+            $validated['img'] = $path;
+        }
+
+        // Update user directly via service (no retrieval)
+        $this->userService->updateUser($id, $validated);
+
+        // Role-based redirect
+        $currentUser = Auth::user();
+        if ($currentUser->role == 1) {
+            // Admin → back to user list
+            return redirect()->route('users.list')->with('status', 'User updated successfully!');
+        } else {
+            // Member → redirect to their own profile page
+            return redirect()->route('users.show', $currentUser->id)->with('status', 'Profile updated successfully!');
+        }
+
+        // return redirect()->route('users.list')->with('status', 'User updated successfully!');
     }
 
     /**
@@ -124,10 +137,10 @@ class UserController extends Controller
      */
     public function destroy(int $id)
     {
-        // Fetch user via service
-        $user = $this->userService->getUserById($id);
+        // // Fetch user via service
+        // $user = $this->userService->getUserById($id);
         // Delete user via service
-        $this->userService->deleteUser($user);
+        $this->userService->deleteUser($id);
         return redirect()->route('users.list');
     }
 
@@ -156,12 +169,14 @@ class UserController extends Controller
             // Login via Auth facade
             Auth::login($user);
 
-            // Check if user is admin
-            if ($user->role == 1) {
+            // Redirect based on role
+            if ($user->role == 1) { // Admin
                 return redirect()->route('users.list');
+            } elseif ($user->role == 2) { // Member
+                // Redirect to a member-specific route showing only their own data
+                return redirect()->route('users.show', $user->id);
             } else {
-                    return redirect()->back()->withErrors([
-                    'login_error' => 'Permission denied!']);
+                return redirect()->back()->withErrors(['login_error' => 'Permission denied!']);
             }
         }
 
@@ -169,6 +184,24 @@ class UserController extends Controller
         return redirect()->back()->withErrors([
             'login_error' => 'Invalid username or password!',
         ])->withInput($request->only('email'));
+    }
+
+    /**
+     * show member function
+     *
+     * @param int $id
+     * @return user view
+     */
+    public function show(int $id)
+    {
+        $currentUser = Auth::user();
+
+        if ($currentUser->role == 2 && $currentUser->id != $id) {
+            abort(403, 'Access denied');
+        }
+
+        $user = $this->userService->getUserById($id);
+        return view('users.show', compact('user'));
     }
 
     /**

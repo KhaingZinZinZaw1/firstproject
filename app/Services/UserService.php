@@ -58,9 +58,8 @@ class UserService implements UserServiceInterface
             return false; // user not found
         }
 
-        $hashedPassword = Hash::make($newPassword);
-        $this->userDao->updatePassword($user, $hashedPassword);
-
+        $data = ['password' => $newPassword];
+        $this->userDao->updateUser($user->id, $data);
         return true;
     }
 
@@ -99,7 +98,7 @@ class UserService implements UserServiceInterface
      * @param array $data
      * @return bool
      */
-    public function updateUser(User $user, array $data)
+    public function updateUser(int $id, array $data)
     {
         // Update password only if provided
         if (!empty($data['password'])) {
@@ -108,7 +107,7 @@ class UserService implements UserServiceInterface
 
         //set updated_by to logged-in user
         $data['updated_by'] = Auth::id();
-        return $this->userDao->updateUser($user, $data);
+        return $this->userDao->updateUser($id, $data);
     }
 
     /**
@@ -117,8 +116,8 @@ class UserService implements UserServiceInterface
      * @param User $user
      * @return bool
      */
-    public function deleteUser(User $user)
+    public function deleteUser(int $id)
     {
-        return $this->userDao->deleteUser($user);
+        return $this->userDao->deleteUser($id);
     }
 }

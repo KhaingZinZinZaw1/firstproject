@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::group(['prefix' => 'user', 'as' => 'users.', 'middleware' => 'auth'], function () {
     Route::controller(UserController::class)->group(function () {
         Route::get('/list', 'userList')->name('list');
+        Route::get('/{id}', 'show')->name('show');//for member role
         Route::get('/{user}/edit', 'edit')->name('edit');
         Route::put('/{user}', 'update')->name('update');
         Route::delete('/{user}', 'destroy')->name('destroy');
