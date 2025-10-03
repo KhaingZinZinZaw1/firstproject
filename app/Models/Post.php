@@ -15,12 +15,12 @@ class Post extends Model
         'updated_by',
     ];
 
-    public function comments() {
-        return $this->hasMany(Comment::class);
-    }
+    // public function comments() {
+    //     return $this->hasMany(Comment::class);
+    // }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    // public function user()
+    // {
+    //     return $this->belongsTo(User::class);
+    // }
 }

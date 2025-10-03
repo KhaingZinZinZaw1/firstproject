@@ -2,13 +2,153 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Post;
+use App\Contracts\Services\PostServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    public function index()
+    private $postService;
+
+    public function __construct(PostServiceInterface $postService)
     {
-        return 'hello!';
+        $this->postService = $postService;
+    }
+    
+    /**
+     * create function
+     *
+     * @return post create view
+     */
+    public function create()
+    {
+        return view('posts.create'); 
+    }
+
+    /**
+     * store function
+     *
+     * @return post list view
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'public_flag' => 'required|boolean',
+        ]);
+
+        // Ensure public_flag is 1 or 0 (from radio button)
+        $validated['public_flag'] = $request->input('public_flag') ? 1 : 0;
+
+        // Use service to store
+        $this->postService->storePost($validated);
+
+        return redirect()->route('posts.list')->with('status', 'Post created successfully!');
+    }
+
+    /**
+     * postList function
+     *
+     * @return post list view
+     */
+    public function postList(){
+        $posts = $this->postService->getAllPosts();
+        return view('posts.list', compact('posts'));        
+    }
+    
+    /**
+     * show function
+     *
+     * @param integer $id
+     * @return post details view
+     */
+    public function show(int $id){
+        $post = $this->postService->getPostById($id);
+
+        if (!$post) {
+            return redirect()->route('posts.list')->withErrors(['Post not found!']);
+        }
+        return view('posts.show', compact('post'));    }
+    
+    /**
+     * edit function
+     *
+     * @param integer $id
+     * @return edit view
+     */
+    public function edit(int $id)
+    {
+        $post = $this->postService->getPostById($id);
+        if (!$post) {
+            return redirect()->route('posts.list')->withErrors(['Post not found!']);
+        }
+        return view('posts.edit', compact('post'));    
+    }
+
+    /**
+     * update function
+     *
+     * @param Request $request
+     * @param integer $id
+     * @return post list view
+     */
+    public function update(Request $request, int $id)
+    {
+        // Validation rules
+        $validated = $request->validate([
+            'title'       => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'public_flag' => 'required|boolean',
+        ]);
+
+        $validated['public_flag'] = $request->input('public_flag') ? 1 : 0;
+        $this->postService->updatePost($id, $validated);
+
+        return redirect()->route('posts.show', $id)->with('status', 'Post updated successfully!');
+    }
+
+    /**
+     * destroy function
+     *
+     * @param integer $id
+     * @return post list view
+     */
+    public function destroy(int $id)
+    {
+        
+        $this->postService->deletePost($id);
+        return redirect()->route('posts.list')->with('status', 'Post deleted successfully!');    
+    }
+    
+    /**
+     * home page function
+     *
+     * @return void
+     */
+    public function home()
+    {
+        //if user login 
+        if (Auth::check()) {
+            return 'Hello';
+        }
+        $posts = $this->postService->getPublicPosts(5);
+        return view('home', compact('posts'));
+    }
+
+    /**
+     * showDetails function
+     *
+     * @param [type] $id
+     * @return post detail view from home page
+     */
+    public function showDetails($id)
+    {
+        $post = $this->postService->getPostById($id);
+
+        if (!$post) {
+            return redirect()->route('posts.list')->withErrors(['Post not found!']);
+        }
+        return view('posts.showdetails', compact('post'));    
     }
 }
