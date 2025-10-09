@@ -2,6 +2,7 @@
 
 namespace App\Contracts\Dao;
 use App\Models\Post;
+use App\Models\User;
 
 interface PostDaoInterface
 {
@@ -11,6 +12,7 @@ interface PostDaoInterface
     public function updatePost(int $id,array $data);
     public function deletePost(int $id);
     public function getPublicPosts(int $perPage = 5);
+    public function getPostsByUser(User $user,int $perPage = 5);
 }
 
 

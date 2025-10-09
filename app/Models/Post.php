@@ -11,16 +11,17 @@ class Post extends Model
         'title',
         'description',
         'public_flag',
+        'user_id',
         'created_by',
         'updated_by',
     ];
 
-    // public function comments() {
-    //     return $this->hasMany(Comment::class);
-    // }
+    public function comments() {
+        return $this->hasMany(Comment::class);
+    }
 
-    // public function user()
-    // {
-    //     return $this->belongsTo(User::class);
-    // }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

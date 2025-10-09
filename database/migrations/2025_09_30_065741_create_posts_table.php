@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id(); // Auto-increment primary key
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title', 255);
             $table->text('description')->nullable();
             $table->boolean('public_flag')->default(true); 

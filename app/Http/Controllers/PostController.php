@@ -38,13 +38,20 @@ class PostController extends Controller
             'public_flag' => 'required|boolean',
         ]);
 
+        $validated['user_id'] = auth::id();
+
         // Ensure public_flag is 1 or 0 (from radio button)
         $validated['public_flag'] = $request->input('public_flag') ? 1 : 0;
 
         // Use service to store
         $this->postService->storePost($validated);
-
-        return redirect()->route('posts.list')->with('status', 'Post created successfully!');
+        // Redirect based on role
+        $currentUser = Auth::user();
+        if ($currentUser->role == 1) {
+            return redirect()->route('users.list')->with('status', 'Post created successfully!');
+        } else {
+            return redirect()->route('users.show', $currentUser->id)->with('status', 'Post created successfully!');
+        } 
     }
 
     /**
@@ -69,7 +76,10 @@ class PostController extends Controller
         if (!$post) {
             return redirect()->route('posts.list')->withErrors(['Post not found!']);
         }
-        return view('posts.show', compact('post'));    }
+        // return view('posts.show', compact('post')); 
+        $post->load(['user', 'comments.user']);
+        return view('posts.show', compact('post'));
+    }
     
     /**
      * edit function
@@ -118,7 +128,15 @@ class PostController extends Controller
     {
         
         $this->postService->deletePost($id);
-        return redirect()->route('posts.list')->with('status', 'Post deleted successfully!');    
+        // return redirect()->route('posts.list')->with('status', 'Post deleted successfully!');  
+        // Redirect based on role
+        $currentUser = Auth::user();
+        if ($currentUser->role == 1) {
+            return redirect()->route('users.list');
+        } else {
+            return redirect()->route('users.show', $currentUser->id)->with('status', 'Post deleted successfully!');
+        } 
+  
     }
     
     /**
@@ -128,12 +146,9 @@ class PostController extends Controller
      */
     public function home()
     {
-        //if user login 
-        if (Auth::check()) {
-            return 'Hello';
-        }
+        $user = Auth::user(); // null if not logged in
         $posts = $this->postService->getPublicPosts(5);
-        return view('home', compact('posts'));
+        return view('home', compact('posts', 'user'));
     }
 
     /**
@@ -149,6 +164,6 @@ class PostController extends Controller
         if (!$post) {
             return redirect()->route('posts.list')->withErrors(['Post not found!']);
         }
-        return view('posts.showdetails', compact('post'));    
+        return view('posts.showdetails', compact('post'));
     }
 }

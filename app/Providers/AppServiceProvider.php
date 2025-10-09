@@ -2,14 +2,18 @@
 
 namespace App\Providers;
 
+use App\Contracts\Dao\CommentDaoInterface;
 use App\Contracts\Dao\PostDaoInterface;
 use App\Contracts\Dao\UserDaoInterface;
+use App\Contracts\Services\CommentServiceInterface;
 use App\Contracts\Services\PostServiceInterface;
 use App\Contracts\Services\UserServiceInterface;
 use App\Dao\PostDao;
 use App\Dao\UserDao;
+use App\Dao\CommentDao;
 use App\Services\PostService;
 use App\Services\UserService;
+use App\Services\CommentService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,7 +27,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserDaoInterface::class, UserDao::class);
         $this->app->bind(PostServiceInterface::class, PostService::class);
         $this->app->bind(PostDaoInterface::class, PostDao::class);
-
+        $this->app->bind(CommentServiceInterface::class, CommentService::class);
+        $this->app->bind(CommentDaoInterface::class, CommentDao::class);
     }
 
     /**

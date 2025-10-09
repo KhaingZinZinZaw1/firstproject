@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Contracts\Services\UserServiceInterface;
+use App\Contracts\Services\PostServiceInterface;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -147,12 +149,13 @@ class UserController extends Controller
     /**
      * show all user list
      *
-     * @return view
+     * @return admin dashboard view
      */
-    public function userList()
+    public function allList()
     {
         $users = $this->userService->listUsers();
-        return view('users.list', compact('users'));
+        $posts = Post::with('user')->get();//need to rewrite using dao service structure
+        return view('users.admin', compact('users','posts'));
     }
 
     /**
@@ -190,9 +193,9 @@ class UserController extends Controller
      * show member function
      *
      * @param int $id
-     * @return user view
+     * @return member dashboard view
      */
-    public function show(int $id)
+    public function memberRole(int $id,PostServiceInterface $postService)
     {
         $currentUser = Auth::user();
 
@@ -200,8 +203,10 @@ class UserController extends Controller
             abort(403, 'Access denied');
         }
 
-        $user = $this->userService->getUserById($id);
-        return view('users.show', compact('user'));
+        $user = $this->userService->getUserById($id);        
+        $myPosts = $postService->getPostsByUser($user, 5);
+        $allPosts = $postService->getAllPosts(3);
+        return view('users.member', compact('user', 'myPosts', 'allPosts'));
     }
 
     /**
@@ -261,4 +266,16 @@ class UserController extends Controller
         Auth::logout();
         return redirect()->route('login')->with('status', 'You have been logged out successfully!');
     }
+
+    /**
+     * user showUserDetail function
+     *
+     * @return user details view
+     */
+    public function showUserDetail(int $id)
+    {
+        $user = $this->userService->getUserById($id);
+        return view('users.userdetail', compact('user'));
+    }
+
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -15,8 +16,9 @@ Route::get('/', [PostController::class, 'home'])->name('home');
 // user login/logout and crud operation
 Route::group(['prefix' => 'user', 'as' => 'users.', 'middleware' => 'auth'], function () {
     Route::controller(UserController::class)->group(function () {
-        Route::get('/list', 'userList')->name('list');
-        Route::get('/{id}', 'show')->name('show');//for member role
+        Route::get('/list', 'allList')->name('list');
+        Route::get('/users/{id}/detail', 'showUserDetail')->name('showuserdetail');
+        Route::get('/{id}', 'memberRole')->name('show');//for member role
         Route::get('/{user}/edit', 'edit')->name('edit');
         Route::put('/{user}', 'update')->name('update');
         Route::delete('/{user}', 'destroy')->name('destroy');
@@ -39,6 +41,7 @@ Route::group(['prefix' => 'post', 'as' => 'posts.'], function () {
     Route::controller(PostController::class)->group(function () {
         Route::get('/create', 'create')->name('create');
         Route::post('/store', 'store')->name('store');
+        Route::get('/details/{id}', 'showDetails')->name('showdetails');//from home page view
     });
 });
 
@@ -46,9 +49,13 @@ Route::group(['prefix' => 'post', 'as' => 'posts.', 'middleware' => 'auth'], fun
     Route::controller(PostController::class)->group(function () {
         Route::get('/list', 'postList')->name('list');
         Route::get('/{id}', 'show')->name('show');
-        Route::get('/{id}', 'showDetails')->name('showdetails');//from home page view
         Route::get('/{post}/edit', 'edit')->name('edit');
         Route::put('/{post}', 'update')->name('update');
         Route::delete('/{user}', 'destroy')->name('destroy');
     });
 });
+
+Route::post('/post/{post}/comment', [CommentController::class, 'store'])
+     ->name('comments.store')
+     ->middleware('auth'); // only logged-in users can comment
+
