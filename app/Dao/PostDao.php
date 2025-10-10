@@ -89,5 +89,16 @@ class PostDao implements PostDaoInterface
     {
         return $user->posts()->latest()->paginate($perPage);
     }
+
+    /**
+     * user getPostsWithUsers function
+     * 
+     * @param 
+     * @return Post
+     */
+    public function getPostsWithUsers()
+    {
+        return Post::with('user')->get();
+    }
 }
 

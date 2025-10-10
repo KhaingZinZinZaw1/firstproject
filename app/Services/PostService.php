@@ -25,9 +25,7 @@ class PostService implements PostServiceInterface
     public function storePost(array $data)
     {
         // Add created_by and updated_by fields
-        $data['created_by'] = Auth::id() ?? 99999;
-        $data['updated_by'] = null;
-
+        $data['created_by'] = Auth::id();
         return $this->postDao->storePost($data);
     }
 
@@ -96,5 +94,16 @@ class PostService implements PostServiceInterface
     public function getPostsByUser(User $user, int $perPage = 5)
     {
         return $this->postDao->getPostsByUser($user, $perPage);
+    }
+
+    /**
+     * user listPostsWithUsers function
+     *
+     * @param 
+     * @return posts
+     */
+    public function listPostsWithUsers()
+    {
+        return $this->postDao->getPostsWithUsers();
     }
 }

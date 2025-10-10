@@ -65,10 +65,10 @@ class PostController extends Controller
     }
     
     /**
-     * show function
+     * show user's post detail
      *
      * @param integer $id
-     * @return post details view
+     * @return View
      */
     public function show(int $id){
         $post = $this->postService->getPostById($id);
@@ -128,11 +128,11 @@ class PostController extends Controller
     {
         
         $this->postService->deletePost($id);
-        // return redirect()->route('posts.list')->with('status', 'Post deleted successfully!');  
         // Redirect based on role
         $currentUser = Auth::user();
         if ($currentUser->role == 1) {
-            return redirect()->route('users.list');
+            // return redirect()->route('users.list');
+            return redirect()->route('posts.list');
         } else {
             return redirect()->route('users.show', $currentUser->id)->with('status', 'Post deleted successfully!');
         } 

@@ -14,14 +14,14 @@ Route::get('/', [PostController::class, 'home'])->name('home');
 
 
 // user login/logout and crud operation
-Route::group(['prefix' => 'user', 'as' => 'users.', 'middleware' => 'auth'], function () {
+Route::group(['prefix' => 'user', 'as' => 'users.', 'middleware' => 'post'], function () {
     Route::controller(UserController::class)->group(function () {
         Route::get('/list', 'allList')->name('list');
         Route::get('/users/{id}/detail', 'showUserDetail')->name('showuserdetail');
         Route::get('/{id}', 'memberRole')->name('show');//for member role
-        Route::get('/{user}/edit', 'edit')->name('edit');
-        Route::put('/{user}', 'update')->name('update');
-        Route::delete('/{user}', 'destroy')->name('destroy');
+        Route::get('/{id}/edit', 'edit')->name('edit');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
     });
 });
 
@@ -39,16 +39,16 @@ Route::controller(UserController::class)->group(function () {
 //post crud operations
 Route::group(['prefix' => 'post', 'as' => 'posts.'], function () {
     Route::controller(PostController::class)->group(function () {
-        Route::get('/create', 'create')->name('create');
+        Route::get('/create', 'create')->name('create')->middleware('post');
         Route::post('/store', 'store')->name('store');
-        Route::get('/details/{id}', 'showDetails')->name('showdetails');//from home page view
+        Route::get('/details/{id}', 'showDetails')->name('showdetails')->middleware('post');//from home page view
     });
 });
 
-Route::group(['prefix' => 'post', 'as' => 'posts.', 'middleware' => 'auth'], function () {
+Route::group(['prefix' => 'post', 'as' => 'posts.'], function () {
     Route::controller(PostController::class)->group(function () {
         Route::get('/list', 'postList')->name('list');
-        Route::get('/{id}', 'show')->name('show');
+        Route::get('/{id}', 'show')->name('show')->middleware('post');
         Route::get('/{post}/edit', 'edit')->name('edit');
         Route::put('/{post}', 'update')->name('update');
         Route::delete('/{user}', 'destroy')->name('destroy');
@@ -57,5 +57,5 @@ Route::group(['prefix' => 'post', 'as' => 'posts.', 'middleware' => 'auth'], fun
 
 Route::post('/post/{post}/comment', [CommentController::class, 'store'])
      ->name('comments.store')
-     ->middleware('auth'); // only logged-in users can comment
+     ->middleware(['auth']); // only logged-in users can comment
 

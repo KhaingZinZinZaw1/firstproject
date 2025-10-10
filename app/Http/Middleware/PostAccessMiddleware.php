@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Post;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,26 +18,34 @@ class PostAccessMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is logged in
-        if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'You must be logged in to access this page.');
-        }
+        if (Auth::check()) {
+        $loggedInUser = Auth::user(); // logged-in user
+        logger($loggedInUser);
+            if ($loggedInUser->role == 2) {
+                $userIdFromRoute = $request->route('id');
+                if ($userIdFromRoute) {
+                    $routeUser = User::find($userIdFromRoute); 
 
-        // If the route has a post ID
-        if ($request->route('post')) {
-            $post = Post::find($request->route('post'));
-
-            // Post does not exist
-            if (!$post) {
-                abort(404, 'Post not found');
+                    // Check if member is trying to view another user's details
+                    if ($routeUser && $routeUser->id != $loggedInUser->id) {
+                        abort(403, 'Access denied:cannot view other user details');
+                    }
+                }
             }
-
-            // If post is private and user is not the owner
-            if ($post->is_private && Auth::id() !== $post->user_id) {
+        }
+        if (!Auth::check()) {
+            // If trying to access a private post OR trying to create a post
+            if ($request->routeIs('posts.create')) {
                 abort(403, 'Access denied');
             }
+            if ($request->route('id')) {
+                $postId = $request->route('id');//get route post id
+                $post = Post::find($postId);
+                if ($post && $post->public_flag == 0) {
+                    abort(403, 'Access denied: private post');
+                }
+            }
         }
-
         return $next($request);
     }
 }

@@ -13,6 +13,7 @@ interface PostDaoInterface
     public function deletePost(int $id);
     public function getPublicPosts(int $perPage = 5);
     public function getPostsByUser(User $user,int $perPage = 5);
+    public function getPostsWithUsers();
 }
 
 

@@ -8,4 +8,3 @@ interface CommentDaoInterface
     public function addComment(int $postId, string $comment);
 }
 
-

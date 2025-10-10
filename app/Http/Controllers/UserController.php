@@ -16,12 +16,13 @@ class UserController extends Controller
 {
     //Using service and dao structure
     private $userService;
+    private $postService;
 
-    public function __construct(UserServiceInterface $userService)
+    public function __construct(UserServiceInterface $userService,PostServiceInterface $postService)
     {
         $this->userService = $userService;
-    }
-    
+        $this->postService = $postService;
+    }    
     /**
      * Display view
      *
@@ -154,7 +155,7 @@ class UserController extends Controller
     public function allList()
     {
         $users = $this->userService->listUsers();
-        $posts = Post::with('user')->get();//need to rewrite using dao service structure
+        $posts = $this->postService->listPostsWithUsers(); 
         return view('users.admin', compact('users','posts'));
     }
 
@@ -195,7 +196,7 @@ class UserController extends Controller
      * @param int $id
      * @return member dashboard view
      */
-    public function memberRole(int $id,PostServiceInterface $postService)
+    public function memberRole(int $id)
     {
         $currentUser = Auth::user();
 
@@ -204,8 +205,8 @@ class UserController extends Controller
         }
 
         $user = $this->userService->getUserById($id);        
-        $myPosts = $postService->getPostsByUser($user, 5);
-        $allPosts = $postService->getAllPosts(3);
+        $myPosts = $this->postService->getPostsByUser($user, 5);
+        $allPosts = $this->postService->getAllPosts(3);
         return view('users.member', compact('user', 'myPosts', 'allPosts'));
     }
 
