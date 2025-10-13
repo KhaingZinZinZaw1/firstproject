@@ -33,7 +33,7 @@ class PostService implements PostServiceInterface
      * user getAllPosts function
      * 
      * @param 
-     * @return posts
+     * @return Post
      */
     public function getAllPosts()
     {
@@ -44,7 +44,7 @@ class PostService implements PostServiceInterface
      * user getPostById function
      * 
      * @param int $id
-     * @return post
+     * @return Post
      */
     public function getPostById(int $id)
     {
@@ -78,7 +78,7 @@ class PostService implements PostServiceInterface
      * user getPublicPosts function
      *
      * @param int $perPage
-     * @return 
+     * @return Post
      */
     public function getPublicPosts(int $perPage = 5)
     {
@@ -89,7 +89,7 @@ class PostService implements PostServiceInterface
      * user getPostsByUser function
      *
      * @param User $user
-     * @return 
+     * @return Post
      */
     public function getPostsByUser(User $user, int $perPage = 5)
     {
@@ -100,10 +100,74 @@ class PostService implements PostServiceInterface
      * user listPostsWithUsers function
      *
      * @param 
-     * @return posts
+     * @return Post
      */
     public function listPostsWithUsers()
     {
         return $this->postDao->getPostsWithUsers();
+    }
+
+    /**
+     * Post's csv file upload function
+     *
+     * @return response
+     */
+    public function uploadPostsCSV($file)
+    {
+        $handle = fopen($file->getPathname(), 'r');
+        fgetcsv($handle);
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $this->postDao->createOrUpdatePost([
+                'id' => $row[0],
+                'title' => $row[1],
+                'description' => $row[2],
+                'user_id' => $row[3],
+                'public_flag' => $row[4],
+                'created_by' => 1
+            ]);
+        }
+
+        fclose($handle);
+        return back()->with('success', 'CSV uploaded successfully');
+    }
+
+    /**
+     * Post's csv file download function
+     *
+     * @return response
+     */
+    public function downloadPostsCSV()
+    {
+        $posts = $this->postDao->getAllPosts();
+        $columns = ['ID', 'Title', 'Description', 'User ID', 'Public/Private', 'Created by'];
+
+        $callback = function() use ($posts, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($posts as $post) {
+                fputcsv($file, [
+                    $post->id,
+                    $post->title,
+                    $post->description,
+                    $post->user_id,
+                    $post->public_flag,
+                    $post-> created_by,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=posts.csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        return response()->stream($callback, 200, $headers);
     }
 }

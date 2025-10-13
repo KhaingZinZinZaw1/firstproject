@@ -12,4 +12,6 @@ interface UserServiceInterface
     public function checkLogin(array $credentials);
     public function listUsers();
     public function resetPassword(string $email, string $newPassword);
+    public function downloadUsersCSV();
+    public function uploadUsersCSV($file);
 }

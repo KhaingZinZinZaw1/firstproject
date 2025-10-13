@@ -150,7 +150,7 @@ class UserController extends Controller
     /**
      * show all user list
      *
-     * @return admin dashboard view
+     * @return View
      */
     public function allList()
     {
@@ -162,7 +162,7 @@ class UserController extends Controller
     /**
      * Attempt to log in the user with the provided credentials.
      *
-     * @return 
+     * @return response
      */
     public function checklogin(Request $request)
     {
@@ -194,7 +194,7 @@ class UserController extends Controller
      * show member function
      *
      * @param int $id
-     * @return member dashboard view
+     * @return View
      */
     public function memberRole(int $id)
     {
@@ -269,14 +269,38 @@ class UserController extends Controller
     }
 
     /**
-     * user showUserDetail function
+     * shows user's details function
      *
-     * @return user details view
+     * @return View
      */
     public function showUserDetail(int $id)
     {
         $user = $this->userService->getUserById($id);
         return view('users.userdetail', compact('user'));
+    }
+    
+    /**
+     * Download users as CSV file function
+     *
+     * @return response
+     */
+    public function downloadCSV()
+    {
+        return $this->userService->downloadUsersCSV();
+    }
+
+    /**
+     * Upload users as CSV file function
+     *
+     * @return response
+     */
+    public function uploadCSV(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt'
+        ]);
+        $this->userService->uploadUsersCSV($request->file('csv_file'));
+        return back()->with('success', 'CSV uploaded successfully');
     }
 
 }

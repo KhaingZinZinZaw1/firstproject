@@ -14,6 +14,7 @@ interface PostDaoInterface
     public function getPublicPosts(int $perPage = 5);
     public function getPostsByUser(User $user,int $perPage = 5);
     public function getPostsWithUsers();
+    public function createOrUpdatePost(array $data);
 }
 
 

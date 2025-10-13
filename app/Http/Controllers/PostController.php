@@ -16,9 +16,9 @@ class PostController extends Controller
     }
     
     /**
-     * create function
+     * posts create function
      *
-     * @return post create view
+     * @return View
      */
     public function create()
     {
@@ -26,9 +26,9 @@ class PostController extends Controller
     }
 
     /**
-     * store function
+     * Posts store function
      *
-     * @return post list view
+     * @return View
      */
     public function store(Request $request)
     {
@@ -55,9 +55,9 @@ class PostController extends Controller
     }
 
     /**
-     * postList function
+     * Show post lists function
      *
-     * @return post list view
+     * @return view
      */
     public function postList(){
         $posts = $this->postService->getAllPosts();
@@ -82,10 +82,10 @@ class PostController extends Controller
     }
     
     /**
-     * edit function
+     * posts edit function
      *
      * @param integer $id
-     * @return edit view
+     * @return View
      */
     public function edit(int $id)
     {
@@ -97,11 +97,11 @@ class PostController extends Controller
     }
 
     /**
-     * update function
+     * posts update function
      *
      * @param Request $request
      * @param integer $id
-     * @return post list view
+     * @return View
      */
     public function update(Request $request, int $id)
     {
@@ -119,10 +119,10 @@ class PostController extends Controller
     }
 
     /**
-     * destroy function
+     * posts destroy function
      *
      * @param integer $id
-     * @return post list view
+     * @return View
      */
     public function destroy(int $id)
     {
@@ -142,7 +142,7 @@ class PostController extends Controller
     /**
      * home page function
      *
-     * @return void
+     * @return View
      */
     public function home()
     {
@@ -152,10 +152,10 @@ class PostController extends Controller
     }
 
     /**
-     * showDetails function
+     * posts showDetails function
      *
      * @param [type] $id
-     * @return post detail view from home page
+     * @return View
      */
     public function showDetails($id)
     {
@@ -165,5 +165,31 @@ class PostController extends Controller
             return redirect()->route('posts.list')->withErrors(['Post not found!']);
         }
         return view('posts.showdetails', compact('post'));
+    }
+
+    /**
+     * Upload posts as CSV file function
+     *
+     * @return response
+     */
+    public function uploadCSV(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|mimes:csv,txt'
+        ]);
+
+        $this->postService->uploadPostsCSV($request->file('csv_file'));
+
+        return back()->with('success', 'Post CSV uploaded successfully');
+    }
+
+    /**
+     * Download posts as CSV file function
+     *
+     * @return response
+     */
+    public function downloadCSV()
+    {
+        return $this->postService->downloadPostsCSV();
     }
 }

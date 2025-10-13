@@ -12,6 +12,14 @@
             <button type="submit" class="btn btn-secondary btn-sm">Logout</button>
         </form>
     </div>
+    
+    <form action="{{ route('users.upload') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <input type="file" name="csv_file" accept=".csv" required>
+        <button type="submit" class="btn btn-primary">Upload CSV</button>
+    </form>
+
+    <a href="{{ route('users.download') }}" class="btn btn-success">Download CSV</a>
 
     {{-- Alerts --}}
     @if(session('status'))
@@ -64,6 +72,14 @@
     </div>
 
     {{-- POSTS SECTION --}}
+
+    <form action="{{ route('posts.upload') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <input type="file" name="csv_file" accept=".csv" required>
+        <button type="submit" class="btn btn-primary">Upload CSV</button>
+    </form>
+    <a href="{{ route('posts.download') }}" class="btn btn-success">Download CSV</a>
+    
     <div class="card shadow-sm">
         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Posts List</h4>

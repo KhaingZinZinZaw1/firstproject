@@ -73,4 +73,23 @@ class UserDao implements UserDaoInterface
     {
         return User::where('id', $id)->delete(); // returns number of affected rows
     }
+
+    /**
+     * createOrUpdateUser function
+     *
+     * @param array $data
+     * @return User
+     */
+    public function createOrUpdateUser(array $data)
+    {
+        return User::updateOrCreate(
+            ['email' => $data['email']], // condition to find user
+            [
+                'name' => $data['name'],
+                'password' => $data['password'],
+                'role' => $data['role'],
+                'created_by' => $data['created_by']
+            ]
+        );
+    }
 }

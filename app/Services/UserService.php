@@ -20,7 +20,7 @@ class UserService implements UserServiceInterface
      * check login function
      *
      * @param array $credentials
-     * @return user
+     * @return User
      */
     public function checkLogin(array $credentials)
     {
@@ -36,7 +36,7 @@ class UserService implements UserServiceInterface
     /**
      * get all users function
      *
-     * @return alluser list
+     * @return User
      */
     public function listUsers()
     {
@@ -84,7 +84,7 @@ class UserService implements UserServiceInterface
      * Get user function
      *
      * @param integer $id
-     * @return user
+     * @return User
      */
     public function getUserById(int $id)
     {
@@ -119,5 +119,65 @@ class UserService implements UserServiceInterface
     public function deleteUser(int $id)
     {
         return $this->userDao->deleteUser($id);
+    }
+
+    /**
+     * User's csv file download function
+     *
+     * @return response
+     */
+    public function downloadUsersCSV()
+    {
+        $users = $this->userDao->getAllUsers();
+
+        $columns = ['ID', 'Name', 'Email', 'Image', 'Role'];
+
+        $callback = function() use ($users, $columns) {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, $columns);
+
+            foreach ($users as $user) {
+                fputcsv($file, [
+                    $user->id,
+                    $user->name,
+                    $user->email,
+                    $user->img,
+                    $user->role
+                ]);
+            }
+            fclose($file);
+        };
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=users.csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * User's csv file upload function
+     *
+     * @return response
+     */
+    public function uploadUsersCSV($file)
+    {
+        $handle = fopen($file->getPathname(), 'r');
+        fgetcsv($handle); // skip header row
+
+        while (($row = fgetcsv($handle)) !== false) {
+            $this->userDao->createOrUpdateUser([
+                'name' => $row[1],
+                'email' => $row[2],
+                'password' => bcrypt('password'),
+                'role' => 2,
+                'created_by' => 1
+            ]);
+        }
+        fclose($handle);
+        return back()->with('success', 'CSV uploaded successfully');
     }
 }

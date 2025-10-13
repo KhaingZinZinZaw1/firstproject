@@ -14,4 +14,6 @@ interface PostServiceInterface
     public function getPublicPosts(int $perPage = 5);
     public function getPostsByUser(User $user, int $perPage = 5);
     public function listPostsWithUsers();
+    public function uploadPostsCSV($file);
+    public function downloadPostsCSV();
 }

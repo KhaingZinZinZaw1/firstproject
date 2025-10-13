@@ -12,7 +12,7 @@ class PostDao implements PostDaoInterface
      * user storePost function
      * 
      * @param array $data
-     * @return post
+     * @return Post
      */
     public function storePost(array $data)
     {
@@ -35,7 +35,7 @@ class PostDao implements PostDaoInterface
      * user findPostById function
      * 
      * @param int $id
-     * @return post
+     * @return Post
      */
     public function findPostById(int $id)
     {
@@ -99,6 +99,25 @@ class PostDao implements PostDaoInterface
     public function getPostsWithUsers()
     {
         return Post::with('user')->get();
+    }
+
+    /**
+     * Posts create or update function
+     * 
+     * @param 
+     * @return Post
+     */
+    public function createOrUpdatePost(array $data)
+    {
+        return Post::updateOrCreate(
+            ['title' => $data['title']],
+            [
+                'description' => $data['description'],
+                'public_flag' => $data['public_flag'],
+                'user_id' => $data['user_id'],
+                'created_by' => $data['created_by']
+            ]
+        );
     }
 }
 

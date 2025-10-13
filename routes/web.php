@@ -59,3 +59,8 @@ Route::post('/post/{post}/comment', [CommentController::class, 'store'])
      ->name('comments.store')
      ->middleware(['auth']); // only logged-in users can comment
 
+Route::get('/users/download', [UserController::class, 'downloadCSV'])->name('users.download');
+Route::post('/users/upload', [UserController::class, 'uploadCSV'])->name('users.upload');
+Route::get('/posts/download', [PostController::class, 'downloadCSV'])->name('posts.download');
+Route::post('/posts/upload', [PostController::class, 'uploadCSV'])->name('posts.upload');
+
