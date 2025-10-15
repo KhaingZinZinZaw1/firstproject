@@ -64,4 +64,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
+
+    // Define role constants
+    public const ROLE_ADMIN = 1;
+    public const ROLE_MEMBER = 2;
 }

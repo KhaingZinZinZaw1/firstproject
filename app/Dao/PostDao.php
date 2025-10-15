@@ -23,12 +23,22 @@ class PostDao implements PostDaoInterface
      * user getAllPosts function
      * 
      * @param int $perPage
-     * @return void
+     * @return Post[]
      */
-    public function getAllPosts(int $perPage = 5)
+    public function getAllPosts(int $perPage)
     {
-        // return Post::all();
         return Post::latest()->paginate($perPage);
+    }
+
+        /**
+     * user getAllPosts without pagination for csv download
+     * 
+     * @param int $perPage
+     * @return Post[]
+     */
+    public function getAllPostsForCSV()
+    {
+        return Post::all(); // fetch all posts for CSV
     }
 
     /**
@@ -47,22 +57,22 @@ class PostDao implements PostDaoInterface
      * 
      * @param int $id
      * @param array $data
-     * @return bool
+     * @return void
      */
-    public function updatePost(int $id, array $data)
+    public function updatePost(int $id, array $data): void
     {
-        return Post::where('id', $id)->update($data); // returns number of affected rows
+        Post::where('id', $id)->update($data);
     }
 
     /**
      * user deletePost function
      * 
      * @param int $id
-     * @return bool
+     * @return void
      */
-    public function deletePost(int $id)
+    public function deletePost(int $id): void
     {
-        return Post::where('id', $id)->delete(); // deletes the post by id
+        Post::where('id', $id)->delete(); // deletes the post by id
     }
 
     /**
@@ -71,7 +81,7 @@ class PostDao implements PostDaoInterface
      * @param int $perPage
      * @return void
      */
-    public function getPublicPosts(int $perPage = 5)
+    public function getPublicPosts(int $perPage)
     {
         return Post::where('public_flag', true)
                    ->latest()
@@ -83,9 +93,9 @@ class PostDao implements PostDaoInterface
      * 
      * @param int $perPage
      * @param User $user
-     * @return void
+     * @return Post[]
      */
-    public function getPostsByUser(User $user, int $perPage = 5)
+    public function getPostsByUser(User $user, int $perPage)
     {
         return $user->posts()->latest()->paginate($perPage);
     }
@@ -110,7 +120,7 @@ class PostDao implements PostDaoInterface
     public function createOrUpdatePost(array $data)
     {
         return Post::updateOrCreate(
-            ['title' => $data['title']],
+            ['title' => $data['title']],//condition
             [
                 'description' => $data['description'],
                 'public_flag' => $data['public_flag'],
@@ -118,6 +128,17 @@ class PostDao implements PostDaoInterface
                 'created_by' => $data['created_by']
             ]
         );
+    }
+
+    /**
+     * Get posts with related user and comments
+     *
+     * @param integer $id
+     * @return Post|null
+     */
+    public function getPostWithRelations(int $id)
+    {
+        return Post::with(['user', 'comments.user'])->find($id);
     }
 }
 

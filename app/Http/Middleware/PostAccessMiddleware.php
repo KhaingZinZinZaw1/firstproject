@@ -20,8 +20,7 @@ class PostAccessMiddleware
     {
         if (Auth::check()) {
         $loggedInUser = Auth::user(); // logged-in user
-        logger($loggedInUser);
-            if ($loggedInUser->role == 2) {
+            if ($loggedInUser->role == User::ROLE_MEMBER) {
                 $userIdFromRoute = $request->route('id');
                 if ($userIdFromRoute) {
                     $routeUser = User::find($userIdFromRoute); 
@@ -33,7 +32,7 @@ class PostAccessMiddleware
                 }
             }
         }
-        if (!Auth::check()) {
+        else {
             // If trying to access a private post OR trying to create a post
             if ($request->routeIs('posts.create')) {
                 abort(403, 'Access denied');

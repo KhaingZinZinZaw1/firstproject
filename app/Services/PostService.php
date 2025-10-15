@@ -6,6 +6,7 @@ use App\Contracts\Services\PostServiceInterface;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PostService implements PostServiceInterface
 {
@@ -37,7 +38,7 @@ class PostService implements PostServiceInterface
      */
     public function getAllPosts()
     {
-        return $this->postDao->getAllPosts();
+        return $this->postDao->getAllPosts(Post::PAGINATION_LENGTH);
     }
     
     /**
@@ -80,9 +81,9 @@ class PostService implements PostServiceInterface
      * @param int $perPage
      * @return Post
      */
-    public function getPublicPosts(int $perPage = 5)
+    public function getPublicPosts()
     {
-        return $this->postDao->getPublicPosts($perPage);
+        return $this->postDao->getPublicPosts(Post::PAGINATION_LENGTH);
     }
         
     /**
@@ -91,9 +92,9 @@ class PostService implements PostServiceInterface
      * @param User $user
      * @return Post
      */
-    public function getPostsByUser(User $user, int $perPage = 5)
+    public function getPostsByUser(User $user)
     {
-        return $this->postDao->getPostsByUser($user, $perPage);
+        return $this->postDao->getPostsByUser($user, Post::PAGINATION_LENGTH);
     }
 
     /**
@@ -112,24 +113,33 @@ class PostService implements PostServiceInterface
      *
      * @return response
      */
-    public function uploadPostsCSV($file)
+    public function uploadPostsCSV(Object $file)
     {
-        $handle = fopen($file->getPathname(), 'r');
-        fgetcsv($handle);
+        try {
+            DB::beginTransaction(); // Start database transaction
 
-        while (($row = fgetcsv($handle)) !== false) {
-            $this->postDao->createOrUpdatePost([
-                'id' => $row[0],
-                'title' => $row[1],
-                'description' => $row[2],
-                'user_id' => $row[3],
-                'public_flag' => $row[4],
-                'created_by' => 1
-            ]);
+            $handle = fopen($file->getPathname(), 'r'); // Open CSV file
+            fgetcsv($handle); // Skip header row
+
+            while (($row = fgetcsv($handle)) !== false) {
+                $this->postDao->createOrUpdatePost([
+                    'id'          => $row[0],
+                    'user_id'     => $row[1],
+                    'title'       => $row[2],
+                    'description' => $row[3],
+                    'public_flag' => $row[4],
+                    'created_by'  => $row[5] 
+                ]);
+            }
+
+            fclose($handle); // Close CSV file
+            DB::commit();   // Save all changes
+
+            return back()->with('success', 'CSV uploaded successfully.');
+        } catch (\Exception $e) {
+            DB::rollback(); // Undo changes if any error occurs
+            return back()->withErrors(['CSV upload failed: ' . $e->getMessage()]);
         }
-
-        fclose($handle);
-        return back()->with('success', 'CSV uploaded successfully');
     }
 
     /**
@@ -139,35 +149,49 @@ class PostService implements PostServiceInterface
      */
     public function downloadPostsCSV()
     {
-        $posts = $this->postDao->getAllPosts();
-        $columns = ['ID', 'Title', 'Description', 'User ID', 'Public/Private', 'Created by'];
+        try {
+            DB::beginTransaction();
 
-        $callback = function() use ($posts, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-
-            foreach ($posts as $post) {
-                fputcsv($file, [
-                    $post->id,
-                    $post->title,
-                    $post->description,
-                    $post->user_id,
-                    $post->public_flag,
-                    $post-> created_by,
-                ]);
+            // Fetch all posts as array
+            $posts = $this->postDao->getAllPostsForCSV()->toArray();
+            if (empty($posts)) {
+                return back()->withErrors(['No posts found for CSV download.']);
             }
+            // Add column headers dynamically
+            array_unshift($posts, array_keys($posts[0]));
+            $callback = function() use ($posts) {
+                $file = fopen('php://output', 'w');
+                foreach ($posts as $row) {
+                    fputcsv($file, $row);
+                }
+                fclose($file);
+            };
+            // CSV headers for response
+            $headers = [
+                "Content-Type"        => "text/csv",
+                "Content-Disposition" => "attachment; filename=posts.csv",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
 
-            fclose($file);
-        };
+            DB::commit();
+            return response()->stream($callback, 200, $headers);
 
-        $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=posts.csv",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        ];
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['CSV download failed: ' . $e->getMessage()]);
+        }
+    }
 
-        return response()->stream($callback, 200, $headers);
+    /**
+     * Get post along with users and comments
+     *
+     * @param integer $id 
+     * @return Post
+     */
+    public function getPostWithRelations(int $id)
+    {
+        return $this->postDao->getPostWithRelations($id);
     }
 }

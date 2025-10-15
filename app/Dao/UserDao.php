@@ -4,6 +4,8 @@ namespace App\Dao;
 
 use App\Contracts\Dao\UserDaoInterface;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class UserDao implements UserDaoInterface
 {
@@ -78,17 +80,17 @@ class UserDao implements UserDaoInterface
      * createOrUpdateUser function
      *
      * @param array $data
-     * @return User
+     * @return void
      */
-    public function createOrUpdateUser(array $data)
+    public function createOrUpdateUser(array $data): void
     {
-        return User::updateOrCreate(
-            ['email' => $data['email']], // condition to find user
+        User::updateOrCreate(
+            ['email' => $data['email']], // Find existing user by email
             [
-                'name' => $data['name'],
-                'password' => $data['password'],
-                'role' => $data['role'],
-                'created_by' => $data['created_by']
+                'name'       => $data['name'],
+                'password'   => isset($data['password']) ? Hash::make($data['password']) : null,
+                'role'       => $data['role'],
+                'created_by' => $data['created_by'],
             ]
         );
     }

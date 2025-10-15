@@ -12,7 +12,19 @@
             <button type="submit" class="btn btn-secondary btn-sm">Logout</button>
         </form>
     </div>
-    
+    <!-- to show error message -->
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            {{ $errors->first() }}
+        </div>
+    @endif
+
+    <!-- to show success message -->
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
     <form action="{{ route('users.upload') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <input type="file" name="csv_file" accept=".csv" required>

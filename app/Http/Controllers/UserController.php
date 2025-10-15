@@ -205,8 +205,9 @@ class UserController extends Controller
         }
 
         $user = $this->userService->getUserById($id);        
-        $myPosts = $this->postService->getPostsByUser($user, 5);
-        $allPosts = $this->postService->getAllPosts(3);
+        // $myPosts = $this->postService->getPostsByUser($user, 5);
+        $myPosts = $this->postService->getPostsByUser($user);
+        $allPosts = $this->postService->getAllPosts();
         return view('users.member', compact('user', 'myPosts', 'allPosts'));
     }
 

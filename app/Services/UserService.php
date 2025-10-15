@@ -6,6 +6,8 @@ use App\Contracts\Services\UserServiceInterface;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\UploadedFile;
 
 class UserService implements UserServiceInterface
 {
@@ -128,34 +130,44 @@ class UserService implements UserServiceInterface
      */
     public function downloadUsersCSV()
     {
-        $users = $this->userDao->getAllUsers();
-
-        $columns = ['ID', 'Name', 'Email', 'Image', 'Role'];
-
-        $callback = function() use ($users, $columns) {
-            $file = fopen('php://output', 'w');
-
-            fputcsv($file, $columns);
-
-            foreach ($users as $user) {
-                fputcsv($file, [
-                    $user->id,
-                    $user->name,
-                    $user->email,
-                    $user->img,
-                    $user->role
-                ]);
+        try {
+            // Start DB transaction
+            DB::beginTransaction();
+            // Fetch all users as an array
+            $users = $this->userDao->getAllUsers()->toArray();
+            if (empty($users)) {
+                return back()->withErrors(['No users found for CSV download.']);
             }
-            fclose($file);
-        };
-        $headers = [
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=users.csv",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        ];
-        return response()->stream($callback, 200, $headers);
+            // Add column headers dynamically
+            array_unshift($users, array_keys($users[0]));
+
+            $callback = function() use ($users) {
+                $file = fopen('php://output', 'w');
+
+                foreach ($users as $row) {
+                    fputcsv($file, $row);
+                }
+
+                fclose($file);
+            };
+
+            // CSV headers for response
+            $headers = [
+                "Content-Type"        => "text/csv",
+                "Content-Disposition" => "attachment; filename=users.csv",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
+            DB::commit();
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            // Rollback any transaction if something goes wrong
+            DB::rollback();
+            // Return back with error message
+            return back()->withErrors(['CSV download failed: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -163,21 +175,33 @@ class UserService implements UserServiceInterface
      *
      * @return response
      */
-    public function uploadUsersCSV($file)
+    public function uploadUsersCSV(Object $file)
     {
-        $handle = fopen($file->getPathname(), 'r');
-        fgetcsv($handle); // skip header row
+        try {
+            DB::beginTransaction(); // Start database transaction
+            $handle = fopen($file->getPathname(), 'r'); // Open the CSV file
+            fgetcsv($handle); // Skip the first row (header)
 
-        while (($row = fgetcsv($handle)) !== false) {
-            $this->userDao->createOrUpdateUser([
-                'name' => $row[1],
-                'email' => $row[2],
-                'password' => bcrypt('password'),
-                'role' => 2,
-                'created_by' => 1
-            ]);
+            while (($row = fgetcsv($handle)) !== false) {
+
+                // Insert user into database(values from csv file)
+                $this->userDao->createOrUpdateUser([
+                    'email'       => $row[1],         
+                    'name'      => $row[2],         
+                    'password'   => bcrypt('password'),
+                    'img'        => $row[3],
+                    'role'       => $row[4] ?? null, 
+                    'created_by' => $row[5]                
+                ]);
+            }
+
+            fclose($handle); // Close the file
+            DB::commit(); // Save all data
+
+            return back()->with('success', 'CSV uploaded successfully.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['CSV upload failed: ' . $e->getMessage()]);
         }
-        fclose($handle);
-        return back()->with('success', 'CSV uploaded successfully');
     }
 }

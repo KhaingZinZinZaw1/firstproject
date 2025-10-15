@@ -13,5 +13,5 @@ interface UserServiceInterface
     public function listUsers();
     public function resetPassword(string $email, string $newPassword);
     public function downloadUsersCSV();
-    public function uploadUsersCSV($file);
+    public function uploadUsersCSV(Object $file);
 }

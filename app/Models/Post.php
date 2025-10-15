@@ -30,4 +30,7 @@ class Post extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+    
+    // Define pagination length constants
+    const PAGINATION_LENGTH = 5;
 }

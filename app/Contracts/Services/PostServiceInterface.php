@@ -11,9 +11,10 @@ interface PostServiceInterface
     public function getPostById(int $id);
     public function updatePost(int $id, array $data);
     public function deletePost(int $id);
-    public function getPublicPosts(int $perPage = 5);
-    public function getPostsByUser(User $user, int $perPage = 5);
+    public function getPublicPosts();
+    public function getPostsByUser(User $user);
     public function listPostsWithUsers();
-    public function uploadPostsCSV($file);
+    public function uploadPostsCSV(Object $file);
     public function downloadPostsCSV();
+    public function getPostWithRelations(int $id);
 }

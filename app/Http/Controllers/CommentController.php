@@ -17,7 +17,8 @@ class CommentController extends Controller
     /**
      * store function
      *
-     * @param [int] $postId Request $request
+     * @param [int] $postId
+     * @param Request $request
      * @return redirect
      */
     public function store(Request $request, $postId)

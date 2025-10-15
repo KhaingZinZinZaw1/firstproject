@@ -34,7 +34,7 @@ class PostController extends Controller
     {
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:500',
             'public_flag' => 'required|boolean',
         ]);
 
@@ -71,13 +71,12 @@ class PostController extends Controller
      * @return View
      */
     public function show(int $id){
-        $post = $this->postService->getPostById($id);
+        // Get post with related user and comments already loaded
+        $post = $this->postService->getPostWithRelations($id);
 
         if (!$post) {
             return redirect()->route('posts.list')->withErrors(['Post not found!']);
         }
-        // return view('posts.show', compact('post')); 
-        $post->load(['user', 'comments.user']);
         return view('posts.show', compact('post'));
     }
     
@@ -85,7 +84,7 @@ class PostController extends Controller
      * posts edit function
      *
      * @param integer $id
-     * @return View
+     * @return View|Redirect
      */
     public function edit(int $id)
     {
@@ -108,7 +107,7 @@ class PostController extends Controller
         // Validation rules
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:500',
             'public_flag' => 'required|boolean',
         ]);
 
@@ -131,7 +130,6 @@ class PostController extends Controller
         // Redirect based on role
         $currentUser = Auth::user();
         if ($currentUser->role == 1) {
-            // return redirect()->route('users.list');
             return redirect()->route('posts.list');
         } else {
             return redirect()->route('users.show', $currentUser->id)->with('status', 'Post deleted successfully!');
@@ -147,14 +145,14 @@ class PostController extends Controller
     public function home()
     {
         $user = Auth::user(); // null if not logged in
-        $posts = $this->postService->getPublicPosts(5);
+        $posts = $this->postService->getPublicPosts();
         return view('home', compact('posts', 'user'));
     }
 
     /**
      * posts showDetails function
      *
-     * @param [type] $id
+     * @param integer $id
      * @return View
      */
     public function showDetails($id)
