@@ -21,7 +21,7 @@ class CommentController extends Controller
      * @param Request $request
      * @return redirect
      */
-    public function store(Request $request, $postId)
+    public function store( $postId, Request $request)
     {
         $request->validate([
             'comment' => 'required|string|max:500',

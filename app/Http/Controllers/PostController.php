@@ -144,9 +144,8 @@ class PostController extends Controller
      */
     public function home()
     {
-        $user = Auth::user(); // null if not logged in
         $posts = $this->postService->getPublicPosts();
-        return view('home', compact('posts', 'user'));
+        return view('home', compact('posts'));
     }
 
     /**

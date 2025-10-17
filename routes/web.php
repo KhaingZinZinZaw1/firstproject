@@ -16,7 +16,7 @@ Route::get('/', [PostController::class, 'home'])->name('home');
 // user login/logout and crud operation
 Route::group(['prefix' => 'user', 'as' => 'users.', 'middleware' => 'post'], function () {
     Route::controller(UserController::class)->group(function () {
-        Route::get('/list', 'allList')->name('list');
+        Route::get('/list', 'allList')->name('list')->middleware('auth');
         Route::get('/users/{id}/detail', 'showUserDetail')->name('showuserdetail');
         Route::get('/{id}', 'memberRole')->name('show');//for member role
         Route::get('/{id}/edit', 'edit')->name('edit');
@@ -59,8 +59,9 @@ Route::post('/post/{post}/comment', [CommentController::class, 'store'])
      ->name('comments.store')
      ->middleware(['auth']); // only logged-in users can comment
 
-Route::get('/users/download', [UserController::class, 'downloadCSV'])->name('users.download');
-Route::post('/users/upload', [UserController::class, 'uploadCSV'])->name('users.upload');
-Route::get('/posts/download', [PostController::class, 'downloadCSV'])->name('posts.download');
-Route::post('/posts/upload', [PostController::class, 'uploadCSV'])->name('posts.upload');
-
+Route::middleware(['auth'])->group(function () {
+    Route::get('/users/download', [UserController::class, 'downloadCSV'])->name('users.download');
+    Route::post('/users/upload', [UserController::class, 'uploadCSV'])->name('users.upload');
+    Route::get('/posts/download', [PostController::class, 'downloadCSV'])->name('posts.download');
+    Route::post('/posts/upload', [PostController::class, 'uploadCSV'])->name('posts.upload');
+});

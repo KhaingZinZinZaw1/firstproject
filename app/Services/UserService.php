@@ -131,13 +131,12 @@ class UserService implements UserServiceInterface
     public function downloadUsersCSV()
     {
         try {
-            // Start DB transaction
-            DB::beginTransaction();
             // Fetch all users as an array
             $users = $this->userDao->getAllUsers()->toArray();
             if (empty($users)) {
                 return back()->withErrors(['No users found for CSV download.']);
             }
+
             // Add column headers dynamically
             array_unshift($users, array_keys($users[0]));
 
@@ -159,12 +158,10 @@ class UserService implements UserServiceInterface
                 "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
                 "Expires"             => "0"
             ];
-            DB::commit();
+
             return response()->stream($callback, 200, $headers);
 
         } catch (\Exception $e) {
-            // Rollback any transaction if something goes wrong
-            DB::rollback();
             // Return back with error message
             return back()->withErrors(['CSV download failed: ' . $e->getMessage()]);
         }

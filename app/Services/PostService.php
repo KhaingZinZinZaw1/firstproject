@@ -150,15 +150,15 @@ class PostService implements PostServiceInterface
     public function downloadPostsCSV()
     {
         try {
-            DB::beginTransaction();
-
             // Fetch all posts as array
             $posts = $this->postDao->getAllPostsForCSV()->toArray();
             if (empty($posts)) {
                 return back()->withErrors(['No posts found for CSV download.']);
             }
+
             // Add column headers dynamically
             array_unshift($posts, array_keys($posts[0]));
+
             $callback = function() use ($posts) {
                 $file = fopen('php://output', 'w');
                 foreach ($posts as $row) {
@@ -166,6 +166,7 @@ class PostService implements PostServiceInterface
                 }
                 fclose($file);
             };
+
             // CSV headers for response
             $headers = [
                 "Content-Type"        => "text/csv",
@@ -175,14 +176,13 @@ class PostService implements PostServiceInterface
                 "Expires"             => "0"
             ];
 
-            DB::commit();
             return response()->stream($callback, 200, $headers);
 
         } catch (\Exception $e) {
-            DB::rollback();
             return back()->withErrors(['CSV download failed: ' . $e->getMessage()]);
         }
     }
+
 
     /**
      * Get post along with users and comments
