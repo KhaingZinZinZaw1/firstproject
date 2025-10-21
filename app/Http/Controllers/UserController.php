@@ -140,8 +140,6 @@ class UserController extends Controller
      */
     public function destroy(int $id)
     {
-        // // Fetch user via service
-        // $user = $this->userService->getUserById($id);
         // Delete user via service
         $this->userService->deleteUser($id);
         return redirect()->route('users.list');

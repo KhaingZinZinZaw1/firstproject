@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 class UserService implements UserServiceInterface
 {
@@ -120,6 +122,15 @@ class UserService implements UserServiceInterface
      */
     public function deleteUser(int $id)
     {
+        $user = $this->userDao->findUserById($id);
+
+        if (!$user) {
+            throw new \Exception("User not found!");
+        }
+        $imagePath = public_path('storage/images/' . basename($user->img));
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
         return $this->userDao->deleteUser($id);
     }
 
