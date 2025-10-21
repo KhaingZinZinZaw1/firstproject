@@ -122,16 +122,26 @@ class UserService implements UserServiceInterface
      */
     public function deleteUser(int $id)
     {
-        $user = $this->userDao->findUserById($id);
+        try {
+            $user = $this->userDao->findUserById($id);
 
-        if (!$user) {
-            throw new \Exception("User not found!");
+            if (!$user) {
+                throw new \Exception("User not found!");
+            }
+
+            // Check if user has an image before attempting to delete
+            if (!empty($user->img)) {
+                $imagePath = public_path('storage/images/' . basename($user->img));
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+            $deletedRows = $this->userDao->deleteUser($id);
+            return $deletedRows;
+
+        } catch (\Exception $e) {
+            throw new \Exception("User deletion failed: " . $e->getMessage());
         }
-        $imagePath = public_path('storage/images/' . basename($user->img));
-        if (file_exists($imagePath)) {
-            unlink($imagePath);
-        }
-        return $this->userDao->deleteUser($id);
     }
 
     /**
